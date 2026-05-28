@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Anonymous Live Chat</title>
 
@@ -23,15 +24,21 @@ html,body{
     touch-action:none;
 }
 
+body{
+    inset:0;
+}
+
 #chat-container{
-    width:100%;
-    height:100vh;
+    width:100vw;
+    height:100dvh;
     display:flex;
     flex-direction:column;
+    overflow:hidden;
 }
 
 #chat-window{
     flex:1;
+    min-height:0;
     padding:20px;
     display:flex;
     flex-direction:column;
@@ -48,11 +55,12 @@ html,body{
     font-size:15px;
     color:white;
     background:linear-gradient(135deg,#444,#222);
-    word-break:break-all;
+    word-break:break-word;
 }
 
 #input-area{
-    padding:10px 15px;
+    width:100%;
+    padding:10px 15px calc(10px + env(safe-area-inset-bottom));
     display:flex;
     align-items:center;
     background:#000;
@@ -62,6 +70,7 @@ html,body{
 
 #message-input{
     flex:1;
+    min-width:0;
     padding:12px 15px;
     background:#1a1a1a;
     border:1px solid #333;
@@ -77,6 +86,7 @@ html,body{
     border:none;
     cursor:pointer;
     padding:5px;
+    flex-shrink:0;
 }
 
 #send-btn svg{
@@ -94,10 +104,16 @@ html,body{
 <body>
 
 <div id="chat-container">
+
     <div id="chat-window"></div>
 
     <div id="input-area">
-        <input type="text" id="message-input" placeholder="메시지 보내기..." autocomplete="off">
+        <input
+            type="text"
+            id="message-input"
+            placeholder="메시지 보내기..."
+            autocomplete="off"
+        >
 
         <button id="send-btn" disabled>
             <svg viewBox="0 0 24 24">
@@ -105,6 +121,7 @@ html,body{
             </svg>
         </button>
     </div>
+
 </div>
 
 <script type="module">
@@ -141,9 +158,11 @@ messageInput.addEventListener('input', () => {
 });
 
 sendBtn.addEventListener('click', async () => {
+
     const text = messageInput.value.trim();
 
     if(text !== ""){
+
         await addDoc(collection(db, "chat"), {
             text:text,
             createdAt:serverTimestamp()
@@ -164,18 +183,20 @@ onSnapshot(q, (snapshot) => {
     chatWindow.innerHTML = "";
 
     snapshot.forEach((doc) => {
+
         const data = doc.data();
 
         const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message');
+
+        msgDiv.className = "message";
         msgDiv.textContent = data.text;
 
         chatWindow.appendChild(msgDiv);
     });
-
 });
 
 messageInput.addEventListener('keypress', (e) => {
+
     if(e.key === 'Enter' && !sendBtn.disabled){
         sendBtn.click();
     }
