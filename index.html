@@ -166,12 +166,30 @@ const sendBtn = document.getElementById('send-btn');
 let lastSendTime = 0;
 const SEND_COOLDOWN = 3000;
 
+function escapeHtml(text){
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function linkify(text){
 
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    text = escapeHtml(text);
 
-    return text.replace(urlRegex, url => {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    const urlRegex = /((https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s<]*)?)/gi;
+
+    return text.replace(urlRegex, (url) => {
+
+        let href = url;
+
+        if(
+            !href.startsWith('http://') &&
+            !href.startsWith('https://')
+        ){
+            href = 'https://' + href;
+        }
+
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
     });
 }
 
@@ -197,12 +215,11 @@ sendBtn.addEventListener('click', async () => {
     if(text !== ""){
 
         lastSendTime = now;
-
         sendBtn.disabled = true;
 
         await addDoc(collection(db, "chat"), {
-            text:text,
-            createdAt:serverTimestamp()
+            text: text,
+            createdAt: serverTimestamp()
         });
 
         messageInput.value = "";
@@ -237,13 +254,15 @@ onSnapshot(q, (snapshot) => {
 
         chatWindow.appendChild(msgDiv);
     });
+
 });
 
-messageInput.addEventListener('keypress', (e) => {
+messageInput.addEventListener('keydown', (e) => {
 
     if(e.key === 'Enter' && !sendBtn.disabled){
         sendBtn.click();
     }
+
 });
 
 document.addEventListener('touchmove', e => {
