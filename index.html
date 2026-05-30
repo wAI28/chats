@@ -44,7 +44,8 @@ body{
     flex-direction:column;
     justify-content:flex-end;
     gap:12px;
-    overflow:hidden;
+    overflow-y:auto;
+    overflow-x:hidden;
 }
 
 .message{
@@ -66,6 +67,14 @@ body{
 
 .message a:hover{
     text-decoration:underline;
+}
+
+.chat-image{
+    display:block;
+    max-width:250px;
+    max-height:300px;
+    border-radius:12px;
+    object-fit:contain;
 }
 
 #input-area{
@@ -246,15 +255,34 @@ onSnapshot(q, (snapshot) => {
     snapshot.forEach((doc) => {
 
         const data = doc.data();
+        const text = data.text || "";
 
         const msgDiv = document.createElement('div');
-
         msgDiv.className = "message";
-        msgDiv.innerHTML = linkify(data.text || "");
+
+        if(text.startsWith("!image:")){
+
+            const imageUrl = text.substring(7).trim();
+
+            msgDiv.innerHTML = `
+                <img
+                    class="chat-image"
+                    src="${imageUrl}"
+                    loading="lazy"
+                    alt="image"
+                >
+            `;
+
+        }else{
+
+            msgDiv.innerHTML = linkify(text);
+
+        }
 
         chatWindow.appendChild(msgDiv);
     });
 
+    chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
 messageInput.addEventListener('keydown', (e) => {
